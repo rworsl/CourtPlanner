@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="loginScreen" class="login-container">
+    <div class="card">
+        <div class="header">
+            <h1>Badminton Court Planner</h1>
+            <p>Manage your club, track games, and improve your ranking!</p>
+        </div>
+        
+        <div id="loginForm">
+            <h2>Login</h2>
+            <div class="form-group">
+                <label for="clubCode">Club Code</label>
+                <input type="text" id="clubCode" placeholder="Enter your club code">
+            </div>
+            <div class="form-group">
+                <label for="playerName">Player Name</label>
+                <input type="text" id="playerName" placeholder="Enter your name">
+            </div>
+            <button onclick="login()">Login</button>
+            <div id="loginError" class="error"></div>
+        </div>
+        
+        <div id="createClubForm" style="display: none;">
+            <h2>Create New Club</h2>
+            <div class="form-group">
+                <label for="newClubCode">Club Code</label>
+                <input type="text" id="newClubCode" placeholder="Create a unique club code">
+            </div>
+            <div class="form-group">
+                <label for="clubName">Club Name</label>
+                <input type="text" id="clubName" placeholder="Enter club name">
+            </div>
+            <div class="form-group">
+                <label for="adminName">Your Name (Admin)</label>
+                <input type="text" id="adminName" placeholder="Enter your name">
+            </div>
+            <button onclick="createClub()">Create Club</button>
+            <div id="createError" class="error"></div>
+        </div>
+        
+        <p style="text-align: center; margin-top: 20px;">
+            <a href="#" onclick="toggleCreateClub()" id="toggleLink">Create new club</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Login functionality
+function login() {
+    const clubCode = document.getElementById('clubCode').value.trim();
+    const playerName = document.getElementById('playerName').value.trim();
+    const errorDiv = document.getElementById('loginError');
+
+    if (!clubCode || !playerName) {
+        errorDiv.textContent = 'Please enter both club code and player name';
+        return;
+    }
+
+    fetch('/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            club_code: clubCode,
+            player_name: playerName
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/dashboard';
+        } else {
+            errorDiv.textContent = data.error;
+        }
+    })
+    .catch(error => {
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        console.error('Error:', error);
+    });
+}
+
+function createClub() {
+    const clubCode = document.getElementById('newClubCode').value.trim();
+    const clubName = document.getElementById('clubName').value.trim();
+    const adminName = document.getElementById('adminName').value.trim();
+    const errorDiv = document.getElementById('createError');
+
+    if (!clubCode || !clubName || !adminName) {
+        errorDiv.textContent = 'Please fill in all fields';
+        return;
+    }
+
+    fetch('/create_club', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            club_code: clubCode,
+            club_name: clubName,
+            admin_name: adminName
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/dashboard';
+        } else {
+            errorDiv.textContent = data.error;
+        }
+    })
+    .catch(error => {
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        console.error('Error:', error);
+    });
+}
+
+function toggleCreateClub() {
+    const loginForm = document.getElementById('loginForm');
+    const createForm = document.getElementById('createClubForm');
+    const toggleLink = document.getElementById('toggleLink');
+
+    if (loginForm.style.display === 'none') {
+        loginForm.style.display = 'block';
+        createForm.style.display = 'none';
+        toggleLink.textContent = 'Create new club';
+    } else {
+        loginForm.style.display = 'none';
+        createForm.style.display = 'block';
+        toggleLink.textContent = 'Back to login';
+    }
+}
+
+// Allow Enter key to submit forms
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const loginForm = document.getElementById('loginForm');
+            const createForm = document.getElementById('createClubForm');
+            
+            if (loginForm.style.display !== 'none') {
+                login();
+            } else if (createForm.style.display !== 'none') {
+                createClub();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

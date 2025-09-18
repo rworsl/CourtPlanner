@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="mainApp">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div></div>
+            <button class="logout-btn" onclick="logout()" style="position: static; margin: 0;">Logout</button>
+        </div>
+        
+        <div class="header">
+            <h2 id="clubTitle"> Badminton Club</h2>
+            <p id="welcomeMessage">Welcome back!</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('dashboard')">Dashboard</button>
+            <button class="nav-tab" onclick="showSection('members')">Members</button>
+            <button class="nav-tab" onclick="showSection('courts')">Courts</button>
+            <button class="nav-tab" onclick="showSection('games')">Games</button>
+            <button class="nav-tab" onclick="showSection('rankings')">Rankings</button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section active">
+            <div class="card">
+                <h2>Club Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Total Members</div>
+                        <div class="stat-value" id="totalMembers">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Active Courts</div>
+                        <div class="stat-value" id="activeCourts">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Games Played</div>
+                        <div class="stat-value" id="gamesPlayed">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Your ELO</div>
+                        <div class="stat-value" id="yourElo">1200</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card suggestions">
+                <h3>Suggested Balanced Matches</h3>
+                <div id="matchSuggestions"></div>
+            </div>
+        </div>
+
+        <!-- Members Section -->
+        <div id="members" class="section">
+            <div class="card">
+                <h2>Club Members</h2>
+                <div id="membersAdminInfo"></div>
+                <div class="form-group">
+                    <label for="newMemberName">Add New Member</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="newMemberName" placeholder="Enter member name" style="flex: 1;">
+                        <button onclick="addMember()" style="width: auto; padding: 12px 20px;">Add Member</button>
+                    </div>
+                    <div id="memberError" class="error"></div>
+                    <div id="memberSuccess" class="success"></div>
+                </div>
+                <div id="membersList" class="player-list"></div>
+            </div>
+        </div>
+
+        <!-- Courts Section -->
+        <div id="courts" class="section">
+            <div class="card">
+                <h2>Court Management</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label for="courtCount">Number of Courts</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="number" id="courtCount" min="1" max="10" value="4" style="width: 100px;">
+                            <button onclick="updateCourts()" style="width: auto; padding: 12px 20px;">Update Courts</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Session Actions</label>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="generateAllMatches()" style="width: auto; padding: 12px 20px;" class="btn-secondary">
+                                Auto-Assign All Courts
+                            </button>
+                            <button onclick="clearAllCourts()" style="width: auto; padding: 12px 20px;" class="btn-danger">
+                                Clear All Courts
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="background: #f8f9fa; margin-bottom: 20px;">
+                    <h3>Active Players for This Session</h3>
+                    <p style="color: #666; margin-bottom: 15px;">Select which players are present and available to play today</p>
+                    <div id="activePlayersSelection" class="player-selection"></div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button onclick="selectAllPlayers()" style="width: auto; padding: 8px 16px;">Select All</button>
+                        <button onclick="clearAllPlayers()" style="width: auto; padding: 8px 16px;" class="btn-secondary">Clear All</button>
+                    </div>
+                    <div id="activePlayersList" style="margin-top: 15px;">
+                        <strong>Active Players: <span id="activePlayersCount">0</span></strong>
+                        <div id="activePlayersNames" style="font-size: 14px; color: #666; margin-top: 5px;"></div>
+                    </div>
+                </div>
+
+                <div id="courtsContainer" class="courts-container"></div>
+            </div>
+        </div>
+
+        <!-- Games Section -->
+        <div id="games" class="section">
+            <div class="card">
+                <div class="game-form">
+                    <h3>Record New Game</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="team1Player1">Team 1 - Player 1</label>
+                            <select id="team1Player1"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="team1Player2">Team 1 - Player 2</label>
+                            <select id="team1Player2"></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="team2Player1">Team 2 - Player 1</label>
+                            <select id="team2Player1"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="team2Player2">Team 2 - Player 2</label>
+                            <select id="team2Player2"></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="team1Score">Team 1 Score</label>
+                            <input type="number" id="team1Score" min="0" placeholder="Score">
+                        </div>
+                        <div class="form-group">
+                            <label for="team2Score">Team 2 Score</label>
+                            <input type="number" id="team2Score" min="0" placeholder="Score">
+                        </div>
+                    </div>
+                    <button onclick="recordGame()">Record Game</button>
+                    <div id="gameError" class="error"></div>
+                    <div id="gameSuccess" class="success"></div>
+                </div>
+                
+                <h3>Recent Games</h3>
+                <div id="gamesAdminInfo"></div>
+                <div id="recentGames"></div>
+            </div>
+        </div>
+
+        <!-- Rankings Section -->
+        <div id="rankings" class="section">
+            <div class="card">
+                <h2>Club Rankings</h2>
+                <div id="rankingsList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

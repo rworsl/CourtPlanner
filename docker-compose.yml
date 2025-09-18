@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: badminton_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://badminton:${POSTGRES_PASSWORD}@db:5432/badminton_db
+    env_file:
+      - .env
+    volumes:
+      - ./instance:/app/instance
+      - ./logs:/app/logs
+    depends_on:
+      - db
+      - redis
+    networks:
+      - badminton_network
+
+  db:
+    image: postgres:15-alpine
+    container_name: badminton_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: badminton_db
+      POSTGRES_USER: badminton
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - badminton_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: badminton_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - badminton_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: badminton_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./static:/var/www/static
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - web
+    networks:
+      - badminton_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  badminton_network:
+    driver: bridge
