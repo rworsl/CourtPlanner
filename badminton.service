@@ -1,36 +1,16 @@
 [Unit]
-Description=Badminton Court Planner Flask App
+Description=Badminton Court Planner
 After=network.target
 
 [Service]
-Type=exec
-User=www-data
-Group=www-data
-WorkingDirectory=/var/www/badminton
-Environment=PATH=/var/www/badminton/venv/bin
-Environment=FLASK_ENV=production
-EnvironmentFile=/var/www/badminton/.env
-ExecStart=/var/www/badminton/venv/bin/gunicorn -c gunicorn.conf.py app:app
-ExecReload=/bin/kill -s HUP $MAINPID
-KillMode=mixed
-TimeoutStopSec=5
-PrivateTmp=true
+Type=simple
+User=root
+WorkingDirectory=/
+Environment=PATH=/venv/bin
+EnvironmentFile=/.env
+ExecStart=/venv/bin/python app.py
 Restart=always
 RestartSec=3
-
-# Create log directories
-RuntimeDirectory=gunicorn
-RuntimeDirectoryMode=755
-LogsDirectory=gunicorn
-LogsDirectoryMode=755
-
-# Security settings
-NoNewPrivileges=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/var/www/badminton
-ReadWritePaths=/var/log/gunicorn
-ReadWritePaths=/var/run/gunicorn
 
 [Install]
 WantedBy=multi-user.target

@@ -565,3 +565,16 @@ button:disabled {
         min-width: 120px;
     }
 }
+/* Mobile session actions fix */
+@media (max-width: 768px) {
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .form-group div[style*="display: flex"] button {
+        font-size: 11px !important;
+        padding: 8px 6px !important;
+        flex: 1;
+        min-width: 0;
+    }
+}
