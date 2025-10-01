@@ -1,0 +1,502 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <a href="{{ url_for('dashboard') }}" style="color: #3498db; text-decoration: none; font-weight: 600;">
+            ← Back to Dashboard
+        </a>
+        <button class="logout-btn" onclick="logout()" style="position: static; margin: 0;">Logout</button>
+    </div>
+    
+    <div class="header">
+        <h1>🏸 Subscription Management</h1>
+        <p>Choose the perfect plan for {{ club.name }}</p>
+    </div>
+
+    <!-- Current Plan Status -->
+    <div class="card" style="margin-bottom: 30px;">
+        <h3>Current Plan Status</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 15px;">
+            <div class="stat-item">
+                <div class="stat-label">Current Plan</div>
+                <div class="stat-value" style="color: #3498db;">{{ plans[club.subscription_plan]['name'] }}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Status</div>
+                <div class="stat-value" style="color: {{ '#27ae60' if club.subscription_status == 'active' else '#f39c12' if club.subscription_status == 'trial' else '#e74c3c' }};">
+                    {{ club.subscription_status.title() }}
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">{{ 'Trial Ends' if club.subscription_status == 'trial' else 'Next Billing' }}</div>
+                <div class="stat-value" style="font-size: 14px;">
+                    {{ club.subscription_end.strftime('%B %d, %Y') if club.subscription_end else 'N/A' }}
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Members</div>
+                <div class="stat-value">
+                    {{ club.total_members }}
+                    {% if club.plan_limits.max_members %}
+                        / {{ club.plan_limits.max_members }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        {% if club.subscription_status == 'trial' %}
+            <div style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 15px; border-radius: 10px; margin-top: 20px; text-align: center;">
+                <strong>🚀 Your free trial ends in {{ (club.subscription_end - now()).days }} days!</strong><br>
+                <small>Upgrade now to continue using all features without interruption.</small>
+            </div>
+        {% elif club.subscription_status in ['cancelled', 'expired'] %}
+            <div style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; padding: 15px; border-radius: 10px; margin-top: 20px; text-align: center;">
+                <strong>⚠️ Your subscription has {{ club.subscription_status }}!</strong><br>
+                <small>Reactivate your subscription to continue managing your club.</small>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pricing Plans -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 30px;">
+        {% for plan_id, plan in plans.items() %}
+            <div class="pricing-card {% if plan_id == 'professional' %}popular{% endif %} {% if plan_id == club.subscription_plan %}current-plan{% endif %}">
+                {% if plan_id == 'professional' %}
+                    <div class="popular-badge">Most Popular</div>
+                {% endif %}
+                
+                {% if plan_id == club.subscription_plan %}
+                    <div class="current-badge">Current Plan</div>
+                {% endif %}
+                
+                <h3 style="color: #2c3e50; font-size: 1.5rem; margin-bottom: 10px;">{{ plan.name }}</h3>
+                
+                <div class="price">
+                    {% if plan.price == 0 %}
+                        Free
+                    {% else %}
+                        ${{ plan.price }}<span class="price-period">/month</span>
+                    {% endif %}
+                </div>
+                
+                <ul class="features-list">
+                    {% if plan_id == 'starter' %}
+                        <li>Up to {{ plan.max_members }} members</li>
+                        <li>{{ plan.max_courts }} courts</li>
+                        <li>Basic ELO tracking</li>
+                        <li>Match recording</li>
+                        <li>Simple rankings</li>
+                        <li>Mobile responsive</li>
+                        <li>Basic support</li>
+                    {% elif plan_id == 'professional' %}
+                        <li>Up to {{ plan.max_members }} members</li>
+                        <li>Unlimited courts</li>
+                        <li>Advanced ELO system</li>
+                        <li>Smart match suggestions</li>
+                        <li>Detailed analytics</li>
+                        <li>Partner statistics</li>
+                        <li>Data export</li>
+                        <li>Enhanced support</li>
+                    {% elif plan_id == 'club' %}
+                        <li>Unlimited members</li>
+                        <li>Unlimited courts</li>
+                        <li>Tournament management</li>
+                        <li>Advanced reporting</li>
+                        <li>Detailed analytics</li>
+                        <li>Partner statistics</li>
+                        <li>Data export</li>
+                        <li>Priority support</li>
+                    {% endif %}
+                </ul>
+                
+                {% if plan_id == club.subscription_plan %}
+                    <button class="btn-current" disabled>Current Plan</button>
+                {% elif plan.price == 0 %}
+                    {% if club.subscription_plan != 'starter' %}
+                        <button onclick="downgradePlan('{{ plan_id }}')" class="btn-downgrade">
+                            Downgrade to Free
+                        </button>
+                    {% else %}
+                        <button disabled class="btn-current">Current Plan</button>
+                    {% endif %}
+                {% else %}
+                    <button onclick="selectPlan('{{ plan_id }}')" class="cta-button">
+                        {% if plans[club.subscription_plan]['price'] < plan.price %}
+                            Upgrade to {{ plan.name }}
+                        {% else %}
+                            Change to {{ plan.name }}
+                        {% endif %}
+                    </button>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Feature Comparison Table -->
+    <div class="card">
+        <h3>Feature Comparison</h3>
+        <div style="overflow-x: auto; margin-top: 20px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th style="padding: 12px; text-align: left; border: 1px solid #ecf0f1;">Feature</th>
+                        <th style="padding: 12px; text-align: center; border: 1px solid #ecf0f1;">Starter</th>
+                        <th style="padding: 12px; text-align: center; border: 1px solid #ecf0f1;">Professional</th>
+                        <th style="padding: 12px; text-align: center; border: 1px solid #ecf0f1;">Club</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; font-weight: 500;">Members</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center;">10</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center;">50</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center;">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; font-weight: 500;">Courts</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center;">2</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center;">Unlimited</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center;">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; font-weight: 500;">Smart Match Suggestions</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #e74c3c;">✗</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #27ae60;">✓</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #27ae60;">✓</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; font-weight: 500;">Partner Statistics</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #e74c3c;">✗</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #27ae60;">✓</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #27ae60;">✓</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; font-weight: 500;">Advanced Analytics</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #e74c3c;">✗</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #27ae60;">✓</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #27ae60;">✓</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; font-weight: 500;">Tournament Management</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #e74c3c;">✗</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #e74c3c;">✗</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #27ae60;">✓</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; font-weight: 500;">API Access</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #e74c3c;">✗</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #e74c3c;">✗</td>
+                        <td style="padding: 10px; border: 1px solid #ecf0f1; text-align: center; color: #27ae60;">✓</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div id="paymentModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Upgrade Subscription</h3>
+            <span class="close" onclick="closePaymentModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="modalPlanDetails"></div>
+            <form id="payment-form">
+                <div id="card-element" style="padding: 20px; border: 2px solid #ddd; border-radius: 8px; margin: 20px 0;">
+                    <!-- Stripe Elements will mount here -->
+                </div>
+                <div id="card-errors" role="alert" style="color: #e74c3c; margin-top: 10px;"></div>
+                <button type="submit" id="submit-payment" class="cta-button" style="width: 100%; margin-top: 20px;">
+                    Complete Upgrade
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.pricing-card {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    text-align: center;
+    position: relative;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.pricing-card.popular {
+    border: 3px solid #3498db;
+    transform: scale(1.02);
+}
+
+.pricing-card.current-plan {
+    border: 3px solid #27ae60;
+    background: linear-gradient(135deg, #f8fff8, #e8f8e8);
+}
+
+.popular-badge, .current-badge {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.popular-badge {
+    background: #3498db;
+    color: white;
+}
+
+.current-badge {
+    background: #27ae60;
+    color: white;
+}
+
+.price {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 20px 0;
+}
+
+.price-period {
+    font-size: 1rem;
+    color: #7f8c8d;
+    font-weight: normal;
+}
+
+.features-list {
+    list-style: none;
+    padding: 0;
+    margin: 30px 0;
+}
+
+.features-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #ecf0f1;
+    color: #5a6c7d;
+}
+
+.features-list li:before {
+    content: "✓";
+    color: #27ae60;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.btn-current {
+    background: #27ae60;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: not-allowed;
+    opacity: 0.7;
+    font-size: 1.1rem;
+    width: 100%;
+}
+
+.btn-downgrade {
+    background: #95a5a6;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+    width: 100%;
+}
+
+.btn-downgrade:hover {
+    background: #7f8c8d;
+    transform: translateY(-2px);
+}
+
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    padding: 20px 30px;
+    border-bottom: 1px solid #ecf0f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 30px;
+}
+
+.close {
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #7f8c8d;
+}
+
+.close:hover {
+    color: #2c3e50;
+}
+</style>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+const stripe = Stripe('{{ stripe_public_key }}');
+const elements = stripe.elements();
+let cardElement;
+let selectedPlan = null;
+
+function selectPlan(planId) {
+    selectedPlan = planId;
+    const plans = {
+        {% for plan_id, plan in plans.items() %}
+            '{{ plan_id }}': {{ plan | tojson }},
+        {% endfor %}
+    };
+    
+    const plan = plans[planId];
+    document.getElementById('modalTitle').textContent = `Upgrade to ${plan.name}`;
+    document.getElementById('modalPlanDetails').innerHTML = `
+        <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px;">
+            <h4 style="color: #2c3e50; margin-bottom: 10px;">${plan.name} Plan</h4>
+            <div style="font-size: 2rem; font-weight: 700; color: #3498db;">$${plan.price}<span style="font-size: 1rem; color: #7f8c8d;">/month</span></div>
+            <p style="color: #7f8c8d; margin: 10px 0 0 0;">Billed monthly • Cancel anytime</p>
+        </div>
+    `;
+    
+    document.getElementById('paymentModal').style.display = 'flex';
+    
+    // Create card element if it doesn't exist
+    if (!cardElement) {
+        cardElement = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#2c3e50',
+                    '::placeholder': {
+                        color: '#7f8c8d',
+                    },
+                },
+            },
+        });
+        cardElement.mount('#card-element');
+    }
+}
+
+function closePaymentModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+    selectedPlan = null;
+}
+
+function downgradePlan(planId) {
+    if (confirm('Are you sure you want to downgrade to the free plan? You will lose access to premium features.')) {
+        // Implement downgrade logic here
+        fetch('/api/downgrade_subscription', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                plan_id: planId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Successfully downgraded to free plan');
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            alert('An error occurred. Please try again.');
+        });
+    }
+}
+
+// Handle payment form submission
+document.getElementById('payment-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    
+    if (!selectedPlan) return;
+    
+    const submitButton = document.getElementById('submit-payment');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Processing...';
+    
+    const {paymentMethod, error} = await stripe.createPaymentMethod({
+        type: 'card',
+        card: cardElement,
+    });
+    
+    if (error) {
+        document.getElementById('card-errors').textContent = error.message;
+        submitButton.disabled = false;
+        submitButton.textContent = 'Complete Upgrade';
+        return;
+    }
+    
+    // Send to your server
+    fetch('/api/create_subscription', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            plan_id: selectedPlan,
+            payment_method_id: paymentMethod.id
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Subscription created successfully!');
+            location.reload();
+        } else {
+            document.getElementById('card-errors').textContent = data.error;
+        }
+        submitButton.disabled = false;
+        submitButton.textContent = 'Complete Upgrade';
+    })
+    .catch(error => {
+        document.getElementById('card-errors').textContent = 'An error occurred. Please try again.';
+        submitButton.disabled = false;
+        submitButton.textContent = 'Complete Upgrade';
+    });
+});
+
+function logout() {
+    window.location.href = '/logout';
+}
+</script>
+{% endblock %}

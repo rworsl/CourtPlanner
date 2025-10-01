@@ -1,76 +1,94 @@
-// Basic utility functions for the app
-document.addEventListener('DOMContentLoaded', function() {
-    // Add any global event listeners or initialization here
-    console.log('Badminton Court Planner loaded');
-});
+/**
+ * Shared Application JavaScript
+ * Common functions used across the application
+ */
 
-// Utility function to format dates
-function formatDate(dateString) {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-}
-
-// Utility function to format time
-function formatTime(timeString) {
-    if (!timeString) return '';
-    return new Date('1970-01-01T' + timeString + 'Z').toLocaleTimeString(undefined, {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
-// Show loading state for buttons
-function setButtonLoading(buttonElement, loading = true) {
-    if (loading) {
-        buttonElement.disabled = true;
-        buttonElement.dataset.originalText = buttonElement.textContent;
-        buttonElement.textContent = 'Loading...';
-    } else {
-        buttonElement.disabled = false;
-        buttonElement.textContent = buttonElement.dataset.originalText || buttonElement.textContent;
-    }
-}
-
-// Show toast notifications
-function showToast(message, type = 'info') {
-    // Simple toast implementation
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 12px 20px;
-        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
-        color: white;
-        border-radius: 8px;
-        z-index: 1000;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    `;
+// Global utility functions
+window.AppUtils = {
+    // Show loading state on any element
+    showLoading: function(element, show = true) {
+        if (typeof element === 'string') {
+            element = document.getElementById(element);
+        }
+        
+        if (!element) return;
+        
+        if (show) {
+            element.classList.add('loading');
+            element.disabled = true;
+        } else {
+            element.classList.remove('loading');
+            element.disabled = false;
+        }
+    },
     
-    document.body.appendChild(toast);
+    // Format date strings
+    formatDate: function(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    },
     
-    // Fade in
-    setTimeout(() => toast.style.opacity = '1', 100);
+    // Format time strings
+    formatTime: function(timeString) {
+        if (!timeString) return '';
+        const [hours, minutes] = timeString.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
+    },
     
-    // Fade out and remove
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => document.body.removeChild(toast), 300);
-    }, 3000);
-}
-
-// Debounce function for search inputs
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
+    // Generic API call wrapper
+    apiCall: async function(url, options = {}) {
+        const defaultOptions = {
+            headers: {
+                'Content-Type': 'application/json',
+            }
         };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+        
+        const mergedOptions = { ...defaultOptions, ...options };
+        
+        try {
+            const response = await fetch(url, mergedOptions);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('API call failed:', error);
+            throw error;
+        }
+    }
+};
+
+// Initialize common functionality when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Add smooth scrolling to anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // Auto-hide alerts after 5 seconds
+    document.querySelectorAll('.alert').forEach(alert => {
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            }
+        }, 5000);
+    });
+});

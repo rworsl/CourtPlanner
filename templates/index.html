@@ -1,155 +1,276 @@
 {% extends "base.html" %}
 
+{% block title %}Login - Badminton Court Planner{% endblock %}
+
 {% block content %}
-<div id="loginScreen" class="login-container">
-    <div class="card">
-        <div class="header">
-            <h1>Badminton Court Planner</h1>
-            <p>Manage your club, track games, and improve your ranking!</p>
+<div class="login-container">
+    <div class="login-wrapper">
+        <div class="login-content">
+            <!-- Left side - Branding and features -->
+            <div class="login-brand">
+                <div class="brand-header">
+                    <i class="fas fa-shuttlecock"></i>
+                    <h1>Badminton Court Planner</h1>
+                    <p>Professional club management and player tracking system</p>
+                </div>
+                
+                <div class="features-list">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>ELO Rating System</h3>
+                            <p>Track player skill progression with professional ELO rankings</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Smart Team Management</h3>
+                            <p>Automatic balanced team suggestions and member organization</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Court Scheduling</h3>
+                            <p>Intelligent court assignments and session management</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Match Analytics</h3>
+                            <p>Comprehensive game history and performance statistics</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right side - Login forms -->
+            <div class="login-forms">
+                <div class="form-container">
+                    <div id="alertContainer"></div>
+                    
+                    <!-- Tab Navigation -->
+                    <div class="login-tabs">
+                        <button class="login-tab active" data-tab="login">
+                            <i class="fas fa-sign-in-alt"></i> Join Club
+                        </button>
+                        <button class="login-tab" data-tab="create">
+                            <i class="fas fa-plus"></i> Create Club
+                        </button>
+                    </div>
+
+                    <!-- Login Form -->
+                    <div id="loginForm" class="tab-content">
+                        <h2>Join Your Club</h2>
+                        <p class="form-subtitle">Enter your club details to access the dashboard</p>
+                        
+                        <form id="loginFormElement">
+                            <div class="form-group">
+                                <label for="club_code" class="form-label">
+                                    <i class="fas fa-building"></i> Club Code
+                                </label>
+                                <input type="text" id="club_code" name="club_code" class="form-input" 
+                                       placeholder="Enter your club code" required>
+                                <div class="form-hint">
+                                    <i class="fas fa-lightbulb"></i>
+                                    Try <strong>DEMO123</strong> for a full demo experience
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="player_name" class="form-label">
+                                    <i class="fas fa-user"></i> Your Name
+                                </label>
+                                <input type="text" id="player_name" name="player_name" class="form-input" 
+                                       placeholder="Enter your name as registered" required>
+                                <div class="form-hint">
+                                    <i class="fas fa-user-shield"></i>
+                                    Demo admins: <strong>Alice Johnson</strong>, <strong>Carol Davis</strong>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg btn-block" id="loginBtn">
+                                <span class="btn-text">
+                                    <i class="fas fa-sign-in-alt"></i> Join Club
+                                </span>
+                                <span class="btn-loading" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i> Joining...
+                                </span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Create Club Form -->
+                    <div id="createForm" class="tab-content" style="display: none;">
+                        <h2>Create New Club</h2>
+                        <p class="form-subtitle">Set up your badminton club in seconds</p>
+                        
+                        <form id="createFormElement">
+                            <div class="form-group">
+                                <label for="new_club_code" class="form-label">
+                                    <i class="fas fa-building"></i> Club Code
+                                </label>
+                                <input type="text" id="new_club_code" name="club_code" class="form-input" 
+                                       placeholder="Choose a unique club code" required pattern="[A-Za-z0-9]+" maxlength="20">
+                                <div class="form-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    Members will use this code to join your club
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="club_name" class="form-label">
+                                    <i class="fas fa-tag"></i> Club Name
+                                </label>
+                                <input type="text" id="club_name" name="club_name" class="form-input" 
+                                       placeholder="Your club's display name" required maxlength="100">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin_name" class="form-label">
+                                    <i class="fas fa-user-shield"></i> Administrator Name
+                                </label>
+                                <input type="text" id="admin_name" name="admin_name" class="form-input" 
+                                       placeholder="Your name (you'll become the admin)" required maxlength="100">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg btn-block" id="createBtn">
+                                <span class="btn-text">
+                                    <i class="fas fa-plus"></i> Create Club
+                                </span>
+                                <span class="btn-loading" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i> Creating...
+                                </span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div id="loginForm">
-            <h2>Login</h2>
-            <div class="form-group">
-                <label for="clubCode">Club Code</label>
-                <input type="text" id="clubCode" placeholder="Enter your club code">
-            </div>
-            <div class="form-group">
-                <label for="playerName">Player Name</label>
-                <input type="text" id="playerName" placeholder="Enter your name">
-            </div>
-            <button onclick="login()">Login</button>
-            <div id="loginError" class="error"></div>
-        </div>
-        
-        <div id="createClubForm" style="display: none;">
-            <h2>Create New Club</h2>
-            <div class="form-group">
-                <label for="newClubCode">Club Code</label>
-                <input type="text" id="newClubCode" placeholder="Create a unique club code">
-            </div>
-            <div class="form-group">
-                <label for="clubName">Club Name</label>
-                <input type="text" id="clubName" placeholder="Enter club name">
-            </div>
-            <div class="form-group">
-                <label for="adminName">Your Name (Admin)</label>
-                <input type="text" id="adminName" placeholder="Enter your name">
-            </div>
-            <button onclick="createClub()">Create Club</button>
-            <div id="createError" class="error"></div>
-        </div>
-        
-        <p style="text-align: center; margin-top: 20px;">
-            <a href="#" onclick="toggleCreateClub()" id="toggleLink">Create new club</a>
-        </p>
     </div>
 </div>
+<!-- Features Section -->
+<div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+    <h4 style="text-align: center; margin-bottom: 1rem; color: var(--text-primary);">Features</h4>
+    <div class="grid grid-cols-2" style="gap: 1rem; font-size: 0.875rem;">
+        <div style="text-align: center;">
+            <i class="fas fa-chart-line" style="color: var(--primary-color); margin-bottom: 0.5rem; font-size: 1.5rem;"></i>
+            <div style="font-weight: 600;">ELO Rankings</div>
+            <div style="color: var(--text-secondary);">Track skill levels</div>
+        </div>
+        <div style="text-align: center;">
+            <i class="fas fa-users" style="color: var(--secondary-color); margin-bottom: 0.5rem; font-size: 1.5rem;"></i>
+            <div style="font-weight: 600;">Team Management</div>
+            <div style="color: var(--text-secondary);">Organize players</div>
+        </div>
+        <div style="text-align: center;">
+            <i class="fas fa-calendar-alt" style="color: var(--accent-color); margin-bottom: 0.5rem; font-size: 1.5rem;"></i>
+            <div style="font-weight: 600;">Court Scheduling</div>
+            <div style="color: var(--text-secondary);">Smart assignments</div>
+        </div>
+        <div style="text-align: center;">
+            <i class="fas fa-trophy" style="color: var(--warning-color); margin-bottom: 0.5rem; font-size: 1.5rem;"></i>
+            <div style="font-weight: 600;">Match History</div>
+            <div style="color: var(--text-secondary);">Complete records</div>
+        </div>
+    </div>
+    
+   <!-- Subscription Plans Info -->
+<div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">
+            <i class="fas fa-crown" style="color: var(--accent-color);"></i> Subscription Plans
+        </h4>
+        <p style="color: var(--text-secondary); font-size: 0.875rem; margin: 0;">
+            Choose the plan that fits your club
+        </p>
+    </div>
+    
+    <div class="login-pricing-grid">
+        <!-- Starter -->
+        <div class="login-pricing-card">
+            <div class="pricing-icon" style="background: linear-gradient(135deg, var(--secondary-color) 0%, var(--secondary-dark) 100%);">
+                <i class="fas fa-paper-plane"></i>
+            </div>
+            <div class="pricing-plan-name">Starter</div>
+            <div class="pricing-plan-price">Free</div>
+            <div class="pricing-plan-features">
+                <div class="pricing-feature-item">
+                    <i class="fas fa-check-circle"></i> 10 members
+                </div>
+                <div class="pricing-feature-item">
+                    <i class="fas fa-check-circle"></i> 2 courts
+                </div>
+                <div class="pricing-feature-item">
+                    <i class="fas fa-check-circle"></i> Basic tracking
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pro -->
+        <div class="login-pricing-card featured">
+            <div class="pricing-popular">Popular</div>
+            <div class="pricing-icon" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
+                <i class="fas fa-rocket"></i>
+            </div>
+            <div class="pricing-plan-name">Club Pro</div>
+            <div class="pricing-plan-price">$10<span>/mo</span></div>
+            <div class="pricing-plan-features">
+                <div class="pricing-feature-item">
+                    <i class="fas fa-check-circle"></i> 50 members
+                </div>
+                <div class="pricing-feature-item">
+                    <i class="fas fa-check-circle"></i> Unlimited courts
+                </div>
+                <div class="pricing-feature-item">
+                    <i class="fas fa-check-circle"></i> ELO system
+                </div>
+                <div class="pricing-feature-item">
+                    <i class="fas fa-check-circle"></i> Analytics
+                </div>
+            </div>
+        </div>
+        
+        <!-- Elite -->
+        <div class="login-pricing-card">
+            <div class="pricing-icon" style="background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="pricing-plan-name">Club Elite</div>
+            <div class="pricing-plan-price">$20<span>/mo</span></div>
+            <div class="pricing-plan-features">
+                <div class="pricing-feature-item">
+                    <i class="fas fa-check-circle"></i> Unlimited members
+                </div>
+                <div class="pricing-feature-item">
+                    <i class="fas fa-check-circle"></i> Unlimited courts
+                </div>
+                <div class="pricing-feature-item">
+                    <i class="fas fa-check-circle"></i> Advanced analytics
+                </div>
+                <div class="pricing-feature-item">
+                    <i class="fas fa-check-circle"></i> Tournaments
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
-{% block scripts %}
-<script>
-// Login functionality
-function login() {
-    const clubCode = document.getElementById('clubCode').value.trim();
-    const playerName = document.getElementById('playerName').value.trim();
-    const errorDiv = document.getElementById('loginError');
-
-    if (!clubCode || !playerName) {
-        errorDiv.textContent = 'Please enter both club code and player name';
-        return;
-    }
-
-    fetch('/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            club_code: clubCode,
-            player_name: playerName
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = '/dashboard';
-        } else {
-            errorDiv.textContent = data.error;
-        }
-    })
-    .catch(error => {
-        errorDiv.textContent = 'An error occurred. Please try again.';
-        console.error('Error:', error);
-    });
-}
-
-function createClub() {
-    const clubCode = document.getElementById('newClubCode').value.trim();
-    const clubName = document.getElementById('clubName').value.trim();
-    const adminName = document.getElementById('adminName').value.trim();
-    const errorDiv = document.getElementById('createError');
-
-    if (!clubCode || !clubName || !adminName) {
-        errorDiv.textContent = 'Please fill in all fields';
-        return;
-    }
-
-    fetch('/create_club', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            club_code: clubCode,
-            club_name: clubName,
-            admin_name: adminName
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = '/dashboard';
-        } else {
-            errorDiv.textContent = data.error;
-        }
-    })
-    .catch(error => {
-        errorDiv.textContent = 'An error occurred. Please try again.';
-        console.error('Error:', error);
-    });
-}
-
-function toggleCreateClub() {
-    const loginForm = document.getElementById('loginForm');
-    const createForm = document.getElementById('createClubForm');
-    const toggleLink = document.getElementById('toggleLink');
-
-    if (loginForm.style.display === 'none') {
-        loginForm.style.display = 'block';
-        createForm.style.display = 'none';
-        toggleLink.textContent = 'Create new club';
-    } else {
-        loginForm.style.display = 'none';
-        createForm.style.display = 'block';
-        toggleLink.textContent = 'Back to login';
-    }
-}
-
-// Allow Enter key to submit forms
-document.addEventListener('DOMContentLoaded', function() {
-    document.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            const loginForm = document.getElementById('loginForm');
-            const createForm = document.getElementById('createClubForm');
-            
-            if (loginForm.style.display !== 'none') {
-                login();
-            } else if (createForm.style.display !== 'none') {
-                createClub();
-            }
-        }
-    });
-});
-</script>
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
 {% endblock %}

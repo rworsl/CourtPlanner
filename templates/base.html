@@ -4,14 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Badminton Court Planner{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <div id="app">
+    {% if session.get('club_code') and session.get('player_name') %}
+    <!-- Navigation for logged-in users -->
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-container">
+                <a href="{{ url_for('dashboard') }}" class="nav-brand">
+                    <i class="fas fa-shuttlecock"></i> Court Planner
+                </a>
+                
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                    <li><a href="#" onclick="showSection('rankings')"><i class="fas fa-trophy"></i> Rankings</a></li>
+                    <li><a href="#" onclick="showSection('games')"><i class="fas fa-history"></i> Games</a></li>
+                    <li><a href="#" onclick="showSection('members')"><i class="fas fa-users"></i> Members</a></li>
+                    <li><a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container" style="padding-top: 1rem;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }}">
+                        <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'info-circle' }}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main>
         {% block content %}{% endblock %}
-    </div>
+    </main>
+
+    <!-- Footer -->
+    <footer style="margin-top: 4rem; padding: 2rem 0; background: var(--bg-primary); border-top: 1px solid var(--border-color);">
+        <div class="container text-center">
+            <p style="color: var(--text-secondary); margin: 0;">
+                &copy; 2025 CourtPlayer.com.
+            </p>
+        </div>
+    </footer>
+
+    <!-- jsPDF Library for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     
+    <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    {% block scripts %}{% endblock %}
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
 </body>
 </html>
